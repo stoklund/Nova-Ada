@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<syntax name="ada">
+    <meta>
+        <name>Ada</name>
+        <type>structured</type>
+        <preferred-file-extension>ads</preferred-file-extension>
+    </meta>
+
+    <detectors>
+        <extension priority="1.0">ada,adb,ads</extension>
+    </detectors>
+
+    <indentation>
+        <increase>
+            <expression>\b(is|then|loop|else|begin|record)$| =&gt;$</expression>
+        </increase>
+        <decrease>
+            <expression>^\s*(end |begin$|when )</expression>
+        </decrease>
+    </indentation>
+
+    <comments>
+        <single>
+            <expression>--</expression>
+        </single>
+    </comments>
+
+    <brackets>
+        <pair open="(" close=")" />
+    </brackets>
+
+    <surrounding-pairs>
+        <pair open="(" close=")" />
+        <pair open="&apos;" close="&apos;" />
+        <pair open="&quot;" close="&quot;" />
+    </surrounding-pairs>
+
+    <scopes>
+        <include syntax="self" collection="values" />
+        <include syntax="self" collection="definitions" />
+        <include syntax="self" collection="comments" />
+        <include syntax="self" collection="keywords" />
+        <include syntax="self" collection="identifiers" />
+        <include syntax="self" collection="operators" />
+    </scopes>
+
+    <collections>
+        <!-- Literal values -->
+        <collection name="values">
+            <include syntax="self" collection="strings" />
+
+            <scope name="ada.value.number">
+                <expression>\d+(\.\d+)?</expression>
+            </scope>
+
+            <scope name="ada.value.number.hex">
+                <expression>#\d+#\w+(\.\w+)?#</expression>
+            </scope>
+
+            <scope name="ada.value.boolean">
+                <strings>
+                    <string>True</string>
+                    <string>False</string>
+                </strings>
+            </scope>
+
+            <scope name="ada.value.null">
+                <strings>
+                    <string>null</string>
+                </strings>
+            </scope>
+        </collection>
+
+        <!-- Identifiers and similar -->
+        <collection name="identifiers">
+            <!-- Named aggregates, argument associations, etc -->
+            <scope>
+                <expression>\b([a-zA-Z]\w+)\s*(=&gt;)</expression>
+                <capture number="1" name="ada.identifier.key"/>
+                <capture number="2" name="ada.operator"/>
+            </scope>
+
+            <scope name="ada.identifier">
+                <expression>\b[a-zA-Z]\w*</expression>
+            </scope>
+
+            <!-- Object'Attributes -->
+            <scope name="ada.identifier.attribute">
+                <expression>(')(\w+)</expression>
+                <capture number="1" name="ada.operator"/>
+                <capture number="2" name="ada.identifier.property"/>
+            </scope>
+
+            <!-- <<Labels>> -->
+            <scope name="ada.identifier.label.cdata">
+                <expression>&lt;&lt;\w+&gt;&gt;</expression>
+            </scope>
+        </collection>
+
+        <!-- String and character literals -->
+        <collection name="strings">
+            <scope name="ada.string">
+                <expression>"([^"]|"")*"</expression>
+            </scope>
+
+            <scope name="ada.string.character">
+                <expression>'([^']|'')'</expression>
+            </scope>
+        </collection>
+
+        <!-- Comments -->
+        <collection name="comments">
+            <scope name="ada.comment" spell-check="true">
+                <expression>--.*</expression>
+            </scope>
+        </collection>
+
+        <!-- Definitions of functions, procedures, and packages -->
+        <collection name="definitions">
+            <!-- Type definitions only cover the `type ... is` text, stopping before and records or ranges etc.
+              TODO: Handle discriminators. -->
+            <scope name="ada.definition.type">
+                <symbol type="type"/>
+                <expression>\b(type|subtype)\s+(\w+)\s+(is)</expression>
+                <capture number="1" name="ada.keyword.type"/>
+                <capture number="2" name="ada.identifier.type.name"/>
+                <capture number="3" name="ada.keyword.is"/>
+            </scope>
+
+            <!-- Forward declaration of a type -->
+            <scope name="ada.identifier.type.forward">
+                <expression>\b(type|subtype)\s+(\w+)\s*(;)</expression>
+                <capture number="1" name="ada.keyword.type"/>
+                <capture number="2" name="ada.identifier.type.name"/>
+                <capture number="3" name="ada.operator"/>
+            </scope>
+
+            <!-- Instantiation of a generic package -->
+            <scope name="ada.definition.package.generic">
+                <symbol type="class"/>
+                <expression>\b(package)\s+(\w+)\s+(is)\s+(new)</expression>
+                <capture number="1" name="ada.keyword.package"/>
+                <capture number="2" name="ada.identifier.package.name"/>
+                <capture number="3" name="ada.keyword.is"/>
+                <capture number="4" name="ada.keyword.new"/>
+            </scope>
+
+            <!-- Full package specification or body -->
+            <scope name="ada.definition.package">
+                <symbol type="class" scope="global"/>
+                <starts-with>
+                    <expression>\b(package)(\s+body)?\s+((\w+\.)*\w+)</expression>
+                    <capture number="1" name="ada.keyword.package"/>
+                    <capture number="2" name="ada.keyword.body"/>
+                    <capture number="3" name="ada.identifier.package.name"/>
+                </starts-with>
+                <ends-with>
+                    <!-- TODO: Extend to full definition -->
+                    <expression>(is)|(;)</expression>
+                    <capture number="1" name="ada.keyword.is"/>
+                    <capture number="2" name="ada.operator"/>
+                </ends-with>
+            </scope>
+
+            <scope name="ada.definition.function">
+                <symbol type="function" scope="global"/>
+                <expression>\b(function|procedure)\s+((\w+\.)*\w+)</expression>
+                <capture number="1" name="ada.keyword.function"/>
+                <capture number="2" name="ada.identifier.function.name"/>
+            </scope>
+
+        </collection>
+
+        <collection name="operators">
+            <!-- Relational operators -->
+            <scope name="ada.operator.relation">
+                <expression>&lt;=?|&gt;=?|/?=</expression>
+            </scope>
+
+            <!-- Other operators -->
+            <scope name="ada.operator">
+                <expression>[-+*/:;|,.&amp;]|\.\.|\*\*|:=|&lt;&gt;</expression>
+            </scope>
+
+            <scope name="ada.bracket">
+                <expression>[()]</expression>
+            </scope>
+        </collection>
+
+        <!-- Keywords and pseudo-keywords -->
+        <collection name="keywords">
+            <!-- Predefined types from Standard -->
+            <scope name="ada.identifier.type.core">
+                <strings case-insensitive="true">
+                    <string>Boolean</string>
+                    <string>Integer</string>
+                    <string>Natural</string>
+                    <string>Positive</string>
+                    <string>Float</string>
+                    <string>Character</string>
+                    <string>Wide_Character</string>
+                    <string>Wide_Wide_Character</string>
+                    <string>String</string>
+                    <string>Wide_String</string>
+                    <string>Wide_Wide_String</string>
+                    <string>Duration</string>
+                    <string>Constraint_Error</string>
+                    <string>Program_Error</string>
+                    <string>Storage_Error</string>
+                    <string>Tasking_Error</string>
+               </strings>
+            </scope>
+
+            <!-- Operator keywords -->
+            <scope name="ada.keyword.operator">
+                <strings case-insensitive="true">
+                    <string>abs</string>
+                    <string>and</string>
+                    <string>in</string>
+                    <string>mod</string>
+                    <string>not</string>
+                    <string>or</string>
+                    <string>rem</string>
+                    <string>xor</string>
+                </strings>
+            </scope>
+
+            <!-- Other keywords -->
+            <scope name="ada.keyword">
+                <strings case-insensitive="true">
+                    <string>abort</string>
+                    <string>abstract</string>
+                    <string>accept</string>
+                    <string>access</string>
+                    <string>aliased</string>
+                    <string>all</string>
+                    <string>array</string>
+                    <string>at</string>
+                    <string>begin</string>
+                    <string>body</string>
+                    <string>case</string>
+                    <string>constant</string>
+                    <string>declare</string>
+                    <string>delay</string>
+                    <string>delta</string>
+                    <string>digits</string>
+                    <string>do</string>
+                    <string>else</string>
+                    <string>elsif</string>
+                    <string>end</string>
+                    <string>entry</string>
+                    <string>exception</string>
+                    <string>exit</string>
+                    <string>for</string>
+                    <string>function</string>
+                    <string>generic</string>
+                    <string>goto</string>
+                    <string>if</string>
+                    <string>interface</string>
+                    <string>is</string>
+                    <string>limited</string>
+                    <string>loop</string>
+                    <string>new</string>
+                    <string>of</string>
+                    <string>others</string>
+                    <string>out</string>
+                    <string>overriding</string>
+                    <string>package</string>
+                    <string>pragma</string>
+                    <string>private</string>
+                    <string>procedure</string>
+                    <string>protected</string>
+                    <string>raise</string>
+                    <string>range</string>
+                    <string>record</string>
+                    <string>renames</string>
+                    <string>requeue</string>
+                    <string>return</string>
+                    <string>reverse</string>
+                    <string>select</string>
+                    <string>separate</string>
+                    <string>some</string>
+                    <string>subtype</string>
+                    <string>synchronized</string>
+                    <string>tagged</string>
+                    <string>task</string>
+                    <string>terminate</string>
+                    <string>then</string>
+                    <string>type</string>
+                    <string>until</string>
+                    <string>use</string>
+                    <string>when</string>
+                    <string>while</string>
+                    <string>with</string>
+                </strings>
+            </scope>
+        </collection>
+    </collections>
+</syntax>
