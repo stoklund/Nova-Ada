@@ -1,8 +1,10 @@
 {
-    "identifier": "dk.2pi.ada",
-    "name": "Ada",
-    "organization": "MyOrganization",
-    "description": "Lorem ipsum, dolor sit amet.",
+    "identifier": "stoklund.Ada",
+    "name": "Ada 2012",
+    "organization": "Jakob Stoklund Olesen",
+    "description": "Ada 2012 Programming Language Support",
+    "bugs": "https://github.com/stoklund/Nova-Ada/issues",
+    "repository": "https://github.com/stoklund/Nova-Ada",
     "version": "1.0",
     "categories": ["languages"]
 }

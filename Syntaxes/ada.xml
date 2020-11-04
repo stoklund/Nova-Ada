@@ -2,7 +2,7 @@
 <syntax name="ada">
     <meta>
         <name>Ada</name>
-        <type>structured</type>
+        <type>compiled</type>
         <preferred-file-extension>ads</preferred-file-extension>
     </meta>
 
@@ -12,7 +12,7 @@
 
     <indentation>
         <increase>
-            <expression>\b(is|then|loop|else|begin|record)$| =&gt;$</expression>
+            <expression>\b(is|then|loop|else|begin|record|do)$| =&gt;$|</expression>
         </increase>
         <decrease>
             <expression>^\s*(end |begin$|when )</expression>
@@ -31,57 +31,483 @@
 
     <surrounding-pairs>
         <pair open="(" close=")" />
-        <pair open="&apos;" close="&apos;" />
         <pair open="&quot;" close="&quot;" />
     </surrounding-pairs>
 
     <scopes>
-        <include syntax="self" collection="values" />
-        <include syntax="self" collection="definitions" />
-        <include syntax="self" collection="comments" />
-        <include syntax="self" collection="keywords" />
-        <include syntax="self" collection="identifiers" />
-        <include syntax="self" collection="operators" />
+        <include syntax="self" collection="stmt-context" />
     </scopes>
 
     <collections>
-        <!-- Literal values -->
-        <collection name="values">
-            <include syntax="self" collection="strings" />
+        <!-- Expression context where statements can't appear.
+            This does include some keywords and that only appear in declarations, but have no structural significance.
+            Parentheses are matched. -->
+        <collection name="expr-context">
+            <include syntax="self" collection="atomics" />
 
-            <scope name="ada.value.number">
-                <expression>\d+(\.\d+)?</expression>
+            <scope name="ada.expression.parens">
+                <starts-with>
+                    <expression>\(</expression>
+                    <capture number="0" name="ada.bracket"/>
+                </starts-with>
+                <ends-with>
+                    <expression>\)</expression>
+                    <capture number="0" name="ada.bracket"/>
+                </ends-with>
+                <subscopes>
+                    <include syntax="self" collection="expr-context"/>
+                </subscopes>
             </scope>
 
-            <scope name="ada.value.number.hex">
-                <expression>#\d+#\w+(\.\w+)?#</expression>
-            </scope>
-
-            <scope name="ada.value.boolean">
-                <strings>
-                    <string>True</string>
-                    <string>False</string>
-                </strings>
-            </scope>
-
-            <scope name="ada.value.null">
-                <strings>
-                    <string>null</string>
-                </strings>
-            </scope>
-        </collection>
-
-        <!-- Identifiers and similar -->
-        <collection name="identifiers">
-            <!-- Named aggregates, argument associations, etc -->
-            <scope>
-                <expression>\b([a-zA-Z]\w+)\s*(=&gt;)</expression>
-                <capture number="1" name="ada.identifier.key"/>
-                <capture number="2" name="ada.operator"/>
-            </scope>
+            <include syntax="self" collection="expr-keywords" />
+            <include syntax="self" collection="expr-operators" />
 
             <scope name="ada.identifier">
                 <expression>\b[a-zA-Z]\w*</expression>
+            </scope>
+        </collection>
+
+        <!-- Statement context allowing some operators and keywords that have structural significance.
+            Note that we don't distinguish between Ada's declarative and statements contexts. It would be too fragile to try and detect those changes. -->
+        <collection name="stmt-context">
+            <include syntax="self" collection="compound-statements"/>
+            <include syntax="self" collection="declarations"/>
+
+            <!-- Catch context clauses to enable package name completions -->
+            <scope name="ada.context-clause">
+                <starts-with>
+                    <expression>(^with|\buse)\b</expression>
+                    <capture number="1" name="ada.keyword"/>
+                </starts-with>
+                <ends-with>
+                    <expression>;</expression>
+                </ends-with>
+                <subscopes>
+                    <cut-off>
+                        <expression>;</expression>
+                    </cut-off>
+                    <include syntax="self" collection="expr-context"/>
+                </subscopes>
+            </scope>
+
+            <scope name="ada.operator">
+                <expression>;</expression>
+            </scope>
+
+            <include syntax="self" collection="stmt-keywords" />
+            <include syntax="self" collection="expr-context"/>
+        </collection>
+
+        <!-- Compound statements. Match the various `end keyword;` variations -->
+        <collection name="compound-statements">
+            <!-- If then else -->
+            <scope name="ada.statement.if-then">
+                <symbol type="statement">
+                    <context behavior="start" group="if">
+                        <auto-close string="end " completion="$name;"/>
+                    </context>
+                </symbol>
+                <starts-with>
+                    <expression>(?:^\s*)(if)\b</expression>
+                    <capture number="1" name="ada.keyword"/>
+                </starts-with>
+                <ends-with>
+                    <expression>\b(then)\s*$</expression>
+                    <capture number="1" name="ada.keyword"/>
+                </ends-with>
+                <subscopes>
+                    <include syntax="self" collection="expr-context"/>
+                </subscopes>
+            </scope>
+
+            <scope name="ada.statement.end-if">
+                <symbol type="statement">
+                    <context behavior="end" group="if"/>
+                </symbol>
+                <expression>\b(end)\s+(if)(;)</expression>
+                <capture number="1" name="ada.keyword"/>
+                <capture number="2" name="ada.keyword"/>
+                <capture number="3" name="ada.operator"/>
+            </scope>
+
+            <!-- Case statement -->
+            <scope name="ada.statement.case-is">
+                <symbol type="statement">
+                    <context behavior="start" group="case">
+                        <auto-close string="end " completion="$name;"/>
+                    </context>
+                </symbol>
+                <starts-with>
+                    <expression>(?:^\s*)(case)\b</expression>
+                    <capture number="1" name="ada.keyword.name"/>
+                </starts-with>
+                <ends-with>
+                    <expression>\b(is)\s*$</expression>
+                    <capture number="1" name="ada.keyword"/>
+                </ends-with>
+                <subscopes>
+                    <include syntax="self" collection="expr-context"/>
+                </subscopes>
+            </scope>
+
+            <scope name="ada.statement.end-case">
+                <symbol type="statement">
+                    <context behavior="end" group="case"/>
+                </symbol>
+                <expression>\b(end)\s+(case)(;)</expression>
+                <capture number="1" name="ada.keyword"/>
+                <capture number="2" name="ada.keyword.name"/>
+                <capture number="3" name="ada.operator"/>
+            </scope>
+
+            <!-- Labeled loop statement -->
+            <scope name="ada.statement.named-loop">
+                <symbol type="block">
+                    <context behavior="start" group-by-name="true">
+                        <auto-close string="end " completion="loop $name;"/>
+                    </context>
+                </symbol>
+                <starts-with>
+                    <expression>(?:^\s*)([a-zA-Z]\w*)\s*(:)(?=\s*(for|while|loop)\b)</expression>
+                    <capture number="1" name="ada.identifier.key.name"/>
+                    <capture number="2" name="ada.operator"/>
+                </starts-with>
+                <ends-with>
+                    <expression>\b(loop)\s*$</expression>
+                    <capture number="1" name="ada.keyword"/>
+                </ends-with>
+                <subscopes>
+                    <include syntax="self" collection="expr-context"/>
+                </subscopes>
+            </scope>
+
+            <scope name="ada.statement.end-named-loop">
+                <symbol type="statement">
+                    <context behavior="end" group-by-name="true"/>
+                </symbol>
+                <expression>\b(end)\s+(loop)\s+(\w+)(;)</expression>
+                <capture number="1" name="ada.keyword"/>
+                <capture number="2" name="ada.keyword"/>
+                <capture number="3" name="ada.identifier.key.name"/>
+                <capture number="4" name="ada.operator"/>
+            </scope>
+
+            <!-- Unlabeled loop statement (for, while, or plain loop) -->
+            <scope name="ada.statement.loop">
+                <symbol type="statement">
+                    <context behavior="start" group="loop">
+                        <auto-close string="end " completion="loop;"/>
+                    </context>
+                </symbol>
+                <starts-with>
+                    <expression>(?:^\s*)(for|while|(?=loop\s*$))\b</expression>
+                    <capture number="1" name="ada.keyword"/>
+                </starts-with>
+                <ends-with>
+                    <expression>\b(loop)\s*$</expression>
+                    <capture number="1" name="ada.keyword"/>
+                </ends-with>
+                <subscopes>
+                    <include syntax="self" collection="expr-context"/>
+                </subscopes>
+            </scope>
+
+            <scope name="ada.statement.end-loop">
+                <symbol type="statement">
+                    <context behavior="end" group="loop"/>
+                </symbol>
+                <expression>\b(end)\s+(loop)(;)</expression>
+                <capture number="1" name="ada.keyword"/>
+                <capture number="2" name="ada.keyword"/>
+                <capture number="3" name="ada.operator"/>
+            </scope>
+
+            <!-- Extended return statement. This also matches a normal return statement since the syntax is so similar, but we filter the symbol creation. -->
+            <scope name="ada.statement.return">
+                <symbol type="statement">
+                    <filter match-end="(?&lt;=do)"/>
+                    <context behavior="start" group="return">
+                        <auto-close string="end " completion="return;"/>
+                    </context>
+                </symbol>
+                <starts-with>
+                    <expression>(?:^\s*)(return)\b</expression>
+                    <capture number="1" name="ada.keyword"/>
+                </starts-with>
+                <ends-with>
+                    <expression>\b(do)\s*$|(;)</expression>
+                    <capture number="1" name="ada.keyword"/>
+                    <capture number="2" name="ada.operator"/>
+                </ends-with>
+                <subscopes>
+                    <include syntax="self" collection="expr-context"/>
+                </subscopes>
+            </scope>
+
+            <scope name="ada.statement.end-return">
+                <symbol type="statement">
+                    <context behavior="end" group="return"/>
+                </symbol>
+                <expression>\b(end)\s+(return)(;)</expression>
+                <capture number="1" name="ada.keyword"/>
+                <capture number="2" name="ada.keyword"/>
+                <capture number="3" name="ada.operator"/>
+            </scope>
+
+            <!-- Parse `record .. end record`. This isn't a statement, but it appears as part of a type definition after the `is`. -->
+            <scope name="ada.type.struct">
+                <symbol type="statement">
+                    <context behavior="subtree">
+                        <auto-close string="end " completion="record;"/>
+                    </context>
+                </symbol>
+                <starts-with>
+                    <expression>\b(record)\b</expression>
+                    <capture number="1" name="ada.keyword.name"/>
+                </starts-with>
+                <ends-with>
+                    <expression>\b(end)\s+(record)(;)</expression>
+                    <capture number="1" name="ada.keyword"/>
+                    <capture number="2" name="ada.keyword.name"/>
+                    <capture number="3" name="ada.operator"/>
+                </ends-with>
+                <subscopes>
+                    <include syntax="self" collection="formal-part"/>
+                </subscopes>
+            </scope>
+
+            <!-- Labeled block statement. This goes either:
+
+                 label: declare ... begin ... end label;
+                 label: begin ... end label;
+              -->
+            <scope name="ada.statement.named-block">
+                <symbol type="block">
+                    <context behavior="start" group-by-name="true">
+                        <auto-close string="end " completion="$name;"/>
+                    </context>
+                </symbol>
+                <starts-with>
+                    <expression>(?:^\s*)([a-zA-Z]\w*)\s*(:)(?=\s*(declare|begin)\b)</expression>
+                    <capture number="1" name="ada.identifier.key.name"/>
+                    <capture number="2" name="ada.operator"/>
+                </starts-with>
+                <ends-with>
+                    <expression>\b(declare|begin)\s*$</expression>
+                    <capture number="1" name="ada.keyword"/>
+                </ends-with>
+            </scope>
+
+            <!-- End a named block. This covers all constructs that are ended with `end name;`:
+
+              - Named blocks,
+              - Functions, procedures,
+              - Entry bodies,
+              - Accept statements,
+              - Package specifications and bodies.
+
+              This scope must come after any of the `end keyword...;` scopes so they take precedence.
+              -->
+            <scope name="ada.statement.end-named">
+                <symbol type="block">
+                    <context behavior="end" group-by-name="true"/>
+                </symbol>
+                <!-- The complicated name here covers stuff like `end Foo.Bar."<";` -->
+                <expression>\b(end)\s+((\w+\.)*(\w+|"[^"\s]+"))(;)</expression>
+                <capture number="1" name="ada.keyword"/>
+                <capture number="2" name="ada.identifier.name"/>
+                <capture number="5" name="ada.operator"/>
+            </scope>
+        </collection>
+
+        <!-- Declarations and definitions of types, functions, procedures, and packages -->
+        <collection name="declarations">
+            <!-- Forward declaration of a type -->
+            <scope name="ada.identifier.type.forward">
+                <expression>(?:^\s*)(type|subtype)\s+(\w+)\s*(;)</expression>
+                <capture number="1" name="ada.keyword"/>
+                <capture number="2" name="ada.identifier.type.name"/>
+                <capture number="3" name="ada.operator"/>
+            </scope>
+
+            <!-- Type definitions only cover the `type ... is` text, stopping before and records or ranges etc. -->
+            <scope name="ada.definition.type">
+                <symbol type="type">
+                    <context behavior="subtree" arguments="true"/>
+                </symbol>
+                <starts-with>
+                    <expression>(?:^\s*)(type|subtype)\s+(\w+)</expression>
+                    <capture number="1" name="ada.keyword"/>
+                    <capture number="2" name="ada.identifier.type.name"/>
+                </starts-with>
+                <ends-with>
+                    <expression>\b(is)\b</expression>
+                    <capture number="1" name="ada.keyword"/>
+                </ends-with>
+                <subscopes>
+                    <!-- Parse the discriminants if any. -->
+                    <include syntax="self" collection="parameter-profile"/>
+                </subscopes>
+            </scope>
+
+            <scope name="ada.definition.function">
+                <symbol type="function">
+                    <!-- Do not start symbol for declarations or expression functions. -->
+                    <filter match-end="(?&lt;=is)(?!\s*\()"/>
+                    <context behavior="start" group-by-name="true">
+                        <auto-close string="end " completion="$name;"/>
+                    </context>
+                </symbol>
+                <starts-with>
+                    <expression>\b(function|procedure)\s+((\w+\.)*(\w+|"[^"\s]+"))</expression>
+                    <capture number="1" name="ada.keyword.function"/>
+                    <capture number="2" name="ada.identifier.function.name"/>
+                </starts-with>
+                <ends-with>
+                    <expression>\b(is)\b|(;)</expression>
+                    <capture number="1" name="ada.keyword"/>
+                    <capture number="2" name="ada.operator"/>
+                </ends-with>
+                <subscopes>
+                    <include syntax="self" collection="parameter-profile"/>
+                </subscopes>
+            </scope>
+
+            <!-- Instantiation of a generic package -->
+            <scope name="ada.definition.package.generic-instance">
+                <symbol type="package"/>
+                <starts-with>
+                    <expression>(?:^\s*)(package)\s+(\w+)\s+(is)\s+(new)\b</expression>
+                    <capture number="1" name="ada.keyword.package"/>
+                    <capture number="2" name="ada.identifier.package.name"/>
+                    <capture number="3" name="ada.keyword.is"/>
+                    <capture number="4" name="ada.keyword.new"/>
+                </starts-with>
+                <ends-with>
+                    <expression>;</expression>
+                </ends-with>
+                <subscopes>
+                    <include syntax="self" collection="expr-context"/>
+                </subscopes>
+            </scope>
+
+            <!-- Full package specification or body -->
+            <scope name="ada.definition.package">
+                <symbol type="package">
+                    <context behavior="start" group-by-name="true">
+                        <auto-close string="end " completion="$name;"/>
+                    </context>
+                </symbol>
+                <expression>(?:^\s*)(package)(\s+body)?\s+((\w+\.)*\w+)\s+(is)\b</expression>
+                <capture number="1" name="ada.keyword"/>
+                <capture number="2" name="ada.keyword"/>
+                <capture number="3" name="ada.identifier.package.name"/>
+                <capture number="5" name="ada.keyword"/>
+            </scope>
+
+            <!-- Declaration of a variable or constant:
+
+                foo: Type;
+
+            We're assuming that named blocks and loops have already been matched.
+
+            Note that we only match the last variable in a construct like:
+
+                foo, bar: Type;
+
+            It seems risky to try and match the first variable, even in statement context where commas don't otherwise appear (I think?).
+             -->
+            <scope name="ada.definition.variable">
+                <symbol type="variable"/>
+                <starts-with>
+                    <expression>\b([a-zA-Z]\w*)\s*(:)(?!=)</expression>
+                    <capture number="1" name="ada.identifier.variable.name"/>
+                    <capture number="2" name="ada.operator"/>
+                </starts-with>
+                <ends-with>
+                    <expression>(;)</expression>
+                    <capture number="1" name="ada.operator"/>
+                </ends-with>
+                <subscopes>
+                    <!-- Allow arbitrary expressions up to the semi. -->
+                    <include syntax="self" collection="expr-context"/>
+                </subscopes>
+            </scope>
+
+        </collection>
+
+        <!-- Parameter profile. Look for a formal-part enclosed in parens. This is used for:
+
+        - Function and procedure parameter-profile.
+        - Type discriminant-part.
+        - Entry body formal part.
+
+        Other expression-like stuff is accepted outside the parens of the formal-part.
+        -->
+        <collection name="parameter-profile">
+            <scope name="ada.expression.params">
+                <starts-with>
+                    <expression>\(</expression>
+                    <capture number="0" name="ada.bracket"/>
+                </starts-with>
+                <ends-with>
+                    <expression>\)</expression>
+                    <capture number="0" name="ada.bracket"/>
+                </ends-with>
+                <subscopes>
+                    <include syntax="self" collection="formal-part"/>
+                </subscopes>
+            </scope>
+            <include syntax="self" collection="expr-context"/>
+        </collection>
+
+        <!-- Formal part. Parse the parameter declarations between the parens. This is also used for:
+
+        - Function and procedure formal parts.
+        - Type discriminants.
+        - Record component lists. -->
+        <collection name="formal-part">
+            <!-- foo, bar: Type -->
+            <scope name="ada.parameter">
+                <symbol type="argument"/>
+                <expression>\b([a-zA-Z]\w*)\s*(,)</expression>
+                <capture number="1" name="ada.identifier.argument.name"/>
+                <capture number="2" name="ada.operator"/>
+            </scope>
+
+            <!-- foo: Type; -->
+            <scope name="ada.parameter">
+                <symbol type="argument"/>
+                <starts-with>
+                    <expression>\b([a-zA-Z]\w*)\s*(:)(?!=)</expression>
+                    <capture number="1" name="ada.identifier.argument.name"/>
+                    <capture number="2" name="ada.operator"/>
+                </starts-with>
+                <ends-with>
+                    <expression>(;)|(?=\))</expression>
+                    <capture number="1" name="ada.operator"/>
+                </ends-with>
+                <subscopes>
+                    <!-- Allow arbitrary expressions up to the semi or the parents `)` -->
+                    <include syntax="self" collection="expr-context"/>
+                </subscopes>
+            </scope>
+
+            <include syntax="self" collection="expr-context"/>
+        </collection>
+
+        <!-- Various atomic lexical constructs. These should be matched early so their contents are not mistaken for something else. -->
+        <collection name="atomics">
+            <scope name="ada.comment" spell-check="true">
+                <expression>--.*</expression>
+            </scope>
+
+            <scope name="ada.string">
+                <expression>"([^"]|"")*"</expression>
+            </scope>
+
+            <scope name="ada.string.character">
+                <expression>'([^']|'')'</expression>
             </scope>
 
             <!-- Object'Attributes -->
@@ -93,102 +519,53 @@
 
             <!-- <<Labels>> -->
             <scope name="ada.identifier.label.cdata">
+                <symbol type="block"/>
                 <expression>&lt;&lt;\w+&gt;&gt;</expression>
             </scope>
-        </collection>
 
-        <!-- String and character literals -->
-        <collection name="strings">
-            <scope name="ada.string">
-                <expression>"([^"]|"")*"</expression>
+            <!-- Literal values -->
+            <scope name="ada.value.number">
+                <expression>\d(_?\d)*(\.\d(_?\d)*)?([eE][-+]?\d(_?\d)*)?</expression>
             </scope>
 
-            <scope name="ada.string.character">
-                <expression>'([^']|'')'</expression>
+            <scope name="ada.value.number.hex">
+                <expression>#\d(_?\d)*#\w+(\.\w+)?#([eE][-+]?\d(_?\d)*)?</expression>
             </scope>
         </collection>
 
-        <!-- Comments -->
-        <collection name="comments">
-            <scope name="ada.comment" spell-check="true">
-                <expression>--.*</expression>
-            </scope>
-        </collection>
-
-        <!-- Definitions of functions, procedures, and packages -->
-        <collection name="definitions">
-            <!-- Type definitions only cover the `type ... is` text, stopping before and records or ranges etc.
-              TODO: Handle discriminators. -->
-            <scope name="ada.definition.type">
-                <symbol type="type"/>
-                <expression>\b(type|subtype)\s+(\w+)\s+(is)</expression>
-                <capture number="1" name="ada.keyword.type"/>
-                <capture number="2" name="ada.identifier.type.name"/>
-                <capture number="3" name="ada.keyword.is"/>
-            </scope>
-
-            <!-- Forward declaration of a type -->
-            <scope name="ada.identifier.type.forward">
-                <expression>\b(type|subtype)\s+(\w+)\s*(;)</expression>
-                <capture number="1" name="ada.keyword.type"/>
-                <capture number="2" name="ada.identifier.type.name"/>
-                <capture number="3" name="ada.operator"/>
-            </scope>
-
-            <!-- Instantiation of a generic package -->
-            <scope name="ada.definition.package.generic">
-                <symbol type="class"/>
-                <expression>\b(package)\s+(\w+)\s+(is)\s+(new)</expression>
-                <capture number="1" name="ada.keyword.package"/>
-                <capture number="2" name="ada.identifier.package.name"/>
-                <capture number="3" name="ada.keyword.is"/>
-                <capture number="4" name="ada.keyword.new"/>
-            </scope>
-
-            <!-- Full package specification or body -->
-            <scope name="ada.definition.package">
-                <symbol type="class" scope="global"/>
-                <starts-with>
-                    <expression>\b(package)(\s+body)?\s+((\w+\.)*\w+)</expression>
-                    <capture number="1" name="ada.keyword.package"/>
-                    <capture number="2" name="ada.keyword.body"/>
-                    <capture number="3" name="ada.identifier.package.name"/>
-                </starts-with>
-                <ends-with>
-                    <!-- TODO: Extend to full definition -->
-                    <expression>(is)|(;)</expression>
-                    <capture number="1" name="ada.keyword.is"/>
-                    <capture number="2" name="ada.operator"/>
-                </ends-with>
-            </scope>
-
-            <scope name="ada.definition.function">
-                <symbol type="function" scope="global"/>
-                <expression>\b(function|procedure)\s+((\w+\.)*\w+)</expression>
-                <capture number="1" name="ada.keyword.function"/>
-                <capture number="2" name="ada.identifier.function.name"/>
-            </scope>
-
-        </collection>
-
-        <collection name="operators">
-            <!-- Relational operators -->
+        <!-- Operators, not including `()` and `;` -->
+        <collection name="expr-operators">
+            <!-- Composite operators -->
             <scope name="ada.operator.relation">
-                <expression>&lt;=?|&gt;=?|/?=</expression>
+                <expression>&lt;=|&gt;=|/=</expression>
             </scope>
-
-            <!-- Other operators -->
             <scope name="ada.operator">
-                <expression>[-+*/:;|,.&amp;]|\.\.|\*\*|:=|&lt;&gt;</expression>
+                <expression>\.\.|\*\*|:=|&lt;&gt;|=&gt;</expression>
             </scope>
 
-            <scope name="ada.bracket">
-                <expression>[()]</expression>
+            <!-- Single-char operators -->
+            <scope name="ada.operator.relation">
+                <expression>&lt;|&gt;|=</expression>
+            </scope>
+            <scope name="ada.operator">
+                <expression>[-+*/:|,.&amp;]</expression>
             </scope>
         </collection>
 
-        <!-- Keywords and pseudo-keywords -->
-        <collection name="keywords">
+        <!-- Keywords that can only appear in statement context. This list isn't complete - only keywords that have significance for the parser appear. -->
+        <collection name="stmt-keywords">
+            <scope name="ada.keyword">
+                <strings case-insensitive="true">
+                    <string>do</string>
+                    <string>is</string>
+                    <string>loop</string>
+                    <string>then</string>
+                </strings>
+            </scope>
+        </collection>
+
+        <!-- Keywords and pseudo-keywords that may appear in expression context -->
+        <collection name="expr-keywords">
             <!-- Predefined types from Standard -->
             <scope name="ada.identifier.type.core">
                 <strings case-insensitive="true">
@@ -209,6 +586,19 @@
                     <string>Storage_Error</string>
                     <string>Tasking_Error</string>
                </strings>
+            </scope>
+
+            <scope name="ada.value.boolean">
+                <strings case-insensitive="true">
+                    <string>True</string>
+                    <string>False</string>
+                </strings>
+            </scope>
+
+            <scope name="ada.keyword.value.null">
+                <strings case-insensitive="true">
+                    <string>null</string>
+                </strings>
             </scope>
 
             <!-- Operator keywords -->
@@ -244,7 +634,6 @@
                     <string>delay</string>
                     <string>delta</string>
                     <string>digits</string>
-                    <string>do</string>
                     <string>else</string>
                     <string>elsif</string>
                     <string>end</string>
@@ -257,9 +646,7 @@
                     <string>goto</string>
                     <string>if</string>
                     <string>interface</string>
-                    <string>is</string>
                     <string>limited</string>
-                    <string>loop</string>
                     <string>new</string>
                     <string>of</string>
                     <string>others</string>
@@ -285,7 +672,6 @@
                     <string>tagged</string>
                     <string>task</string>
                     <string>terminate</string>
-                    <string>then</string>
                     <string>type</string>
                     <string>until</string>
                     <string>use</string>

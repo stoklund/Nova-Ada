@@ -1,17 +1,486 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <completions>
-    <provider>
-        <selector>mylang</selector>
-        <expression>\b[a-zA-Z0-9-_]*</expression>
-        <set>mylang.entities</set>
+    <provider name="ada.attributes">
+        <syntax>ada</syntax>
+        <expression>(?&lt;=\S)'[a-zA-Z]\w*</expression>
+        <set>ada.attributes</set>
+        <set>ada.attributes.functions</set>
     </provider>
-    
-    <!-- Entities -->
-    <set name="mylang.entities">
-        <completion string="&quot;" />
-        <completion string="&amp;" />
-        <completion string="&apos;" />
-        <completion string="&lt;" />
-        <completion string="&gt;" />
+
+    <provider name="ada.packages.context-clause">
+        <syntax>ada</syntax>
+        <selector>context-clause *</selector>
+        <expression>\b[A-Z][.\w]*</expression>
+        <set>ada.packages.core</set>
+        <set>ada.packages.generic.core</set>
+        <symbols type="package"/>
+    </provider>
+
+    <provider name="ada.packages.generic-instance">
+        <syntax>ada</syntax>
+        <selector>generic-instance *</selector>
+        <expression>\b[A-Z][.\w]*</expression>
+        <set>ada.packages.generic.core</set>
+        <symbols type="package"/>
+    </provider>
+
+    <provider name="ada.symbols">
+        <syntax>ada</syntax>
+        <expression>(?&lt;!['\w])[A-Z]\w*</expression>
+        <symbols type="function,type">
+            <behavior>
+                <arguments prefix="(" suffix=")" separator=", " append-empty="false"/>
+            </behavior>
+        </symbols>
+        <symbols type="argument,variable,constant,package,block"/>
+    </provider>
+
+    <!-- K.2 Language-Defined Attributes, excluding attributes specific to fixed and floating point types and Annex E Distributed Systems. -->
+    <set name="ada.attributes" symbol="property">
+        <completion string="'Access"/>
+        <completion string="'Address"/>
+        <completion string="'Alignment"/>
+        <completion string="'Base" symbol="type"/>
+        <completion string="'Bit_Order"/>
+        <completion string="'Callable"/>
+        <completion string="'Caller"/>
+        <completion string="'Class" symbol="type"/>
+        <completion string="'Component_Size"/>
+        <completion string="'Constrained"/>
+        <completion string="'Count"/>
+        <completion string="'Definite"/>
+        <completion string="'External_Tag"/>
+        <completion string="'First"/>
+        <completion string="'First_Bit"/>
+        <completion string="'First_Valid"/>
+        <completion string="'Identity"/>
+        <completion string="'Image"/>
+        <completion string="'Last"/>
+        <completion string="'Last_Bit"/>
+        <completion string="'Last_Valid"/>
+        <completion string="'Length"/>
+        <completion string="'Max_Alignment_For_Allocation"/>
+        <completion string="'Max_Size_In_Storage_Elements"/>
+        <completion string="'Modulus"/>
+        <completion string="'Old"/>
+        <completion string="'Position"/>
+        <completion string="'Priority"/>
+        <completion string="'Range"/>
+        <completion string="'Result"/>
+        <completion string="'Size"/>
+        <completion string="'Storage_Pool"/>
+        <completion string="'Storage_Size"/>
+        <completion string="'Stream_Size"/>
+        <completion string="'Tag"/>
+        <completion string="'Terminated"/>
+        <completion string="'Unchecked_Access"/>
+        <completion string="'Valid"/>
+        <completion string="'Wide_Image"/>
+        <completion string="'Wide_Wide_Image"/>
+        <completion string="'Wide_Wide_Width"/>
+        <completion string="'Wide_Width"/>
+        <completion string="'Width"/>
+    </set>
+
+    <set name="ada.attributes.functions" symbol="function">
+        <completion string="'Has_Same_Storage"/>
+        <completion string="'Image"/>
+        <completion string="'Input"/>
+        <completion string="'Max"/>
+        <completion string="'Min"/>
+        <completion string="'Mod"/>
+        <completion string="'Output"/>
+        <completion string="'Overlaps_Storage"/>
+        <completion string="'Pos"/>
+        <completion string="'Pred"/>
+        <completion string="'Read"/>
+        <completion string="'Succ"/>
+        <completion string="'Val"/>
+        <completion string="'Value"/>
+        <completion string="'Wide_Image"/>
+        <completion string="'Wide_Value"/>
+        <completion string="'Wide_Wide_Image"/>
+        <completion string="'Wide_Wide_Value"/>
+        <completion string="'Write"/>
+    </set>
+
+    <!-- All non-generic packages in Ada 202x. -->
+    <set name="ada.packages.core" symbol="package">
+        <completion string="Ada.Assertions"/>
+        <completion string="Ada.Asynchronous_Task_Control"/>
+        <completion string="Ada.Calendar"/>
+        <completion string="Ada.Calendar.Arithmetic"/>
+        <completion string="Ada.Calendar.Formatting"/>
+        <completion string="Ada.Calendar.Time_Zones"/>
+        <completion string="Ada.Characters"/>
+        <completion string="Ada.Characters.Conversions"/>
+        <completion string="Ada.Characters.Handling"/>
+        <completion string="Ada.Characters.Latin_1"/>
+        <completion string="Ada.Command_Line"/>
+        <completion string="Ada.Complex_Text_IO"/>
+        <completion string="Ada.Containers"/>
+        <completion string="Ada.Decimal"/>
+        <completion string="Ada.Directories"/>
+        <completion string="Ada.Directories.Hierarchical_File_Names"/>
+        <completion string="Ada.Directories.Information"/>
+        <completion string="Ada.Dispatching"/>
+        <completion string="Ada.Dispatching.EDF"/>
+        <completion string="Ada.Dispatching.Non_Preemptive"/>
+        <completion string="Ada.Dispatching.Round_Robin"/>
+        <completion string="Ada.Dynamic_Priorities"/>
+        <completion string="Ada.Environment_Variables"/>
+        <completion string="Ada.Exceptions"/>
+        <completion string="Ada.Execution_Time"/>
+        <completion string="Ada.Execution_Time.Group_Budgets"/>
+        <completion string="Ada.Execution_Time.Interrupts"/>
+        <completion string="Ada.Execution_Time.Timers"/>
+        <completion string="Ada.Finalization"/>
+        <completion string="Ada.Float_Text_IO"/>
+        <completion string="Ada.Float_Wide_Text_IO"/>
+        <completion string="Ada.Float_Wide_Wide_Text_IO"/>
+        <completion string="Ada.IO_Exceptions"/>
+        <completion string="Ada.Integer_Text_IO"/>
+        <completion string="Ada.Integer_Wide_Text_IO"/>
+        <completion string="Ada.Integer_Wide_Wide_Text_IO"/>
+        <completion string="Ada.Interrupts"/>
+        <completion string="Ada.Interrupts.Names"/>
+        <completion string="Ada.Locales"/>
+        <completion string="Ada.Numerics"/>
+        <completion string="Ada.Numerics.Big_Numbers.Big_Integers"/>
+        <completion string="Ada.Numerics.Big_Numbers.Big_Integers.Signed_Conversions"/>
+        <completion string="Ada.Numerics.Big_Numbers.Big_Integers.Unsigned_Conversions"/>
+        <completion string="Ada.Numerics.Big_Numbers.Big_Reals"/>
+        <completion string="Ada.Numerics.Big_Numbers.Big_Reals.Fixed_Conversions"/>
+        <completion string="Ada.Numerics.Big_Numbers.Big_Reals.Float_Conversions"/>
+        <completion string="Ada.Numerics.Complex_Arrays"/>
+        <completion string="Ada.Numerics.Complex_Elementary_Functions"/>
+        <completion string="Ada.Numerics.Complex_Types"/>
+        <completion string="Ada.Numerics.Discrete_Random"/>
+        <completion string="Ada.Numerics.Float_Random"/>
+        <completion string="Ada.Numerics.Generic_Elementary_Functions"/>
+        <completion string="Ada.Numerics.Real_Arrays"/>
+        <completion string="Ada.Real_Time"/>
+        <completion string="Ada.Real_Time.Timing_Events"/>
+        <completion string="Ada.Streams"/>
+        <completion string="Ada.Streams.Storage"/>
+        <completion string="Ada.Streams.Storage.Bounded"/>
+        <completion string="Ada.Streams.Storage.Unbounded"/>
+        <completion string="Ada.Streams.Stream_IO"/>
+        <completion string="Ada.Streams.Stream_IO.Wide_File_Names"/>
+        <completion string="Ada.Streams.Stream_IO.Wide_Wide_File_Names"/>
+        <completion string="Ada.Strings"/>
+        <completion string="Ada.Strings.Bounded"/>
+        <completion string="Ada.Strings.Bounded.Generic_Bounded_Length"/>
+        <completion string="Ada.Strings.Fixed"/>
+        <completion string="Ada.Strings.Maps"/>
+        <completion string="Ada.Strings.Maps.Constants"/>
+        <completion string="Ada.Strings.Text_Buffers"/>
+        <completion string="Ada.Strings.Text_Buffers.Bounded"/>
+        <completion string="Ada.Strings.Text_Buffers.Unbounded"/>
+        <completion string="Ada.Strings.UTF_Encoding"/>
+        <completion string="Ada.Strings.UTF_Encoding.Conversions"/>
+        <completion string="Ada.Strings.UTF_Encoding.Strings"/>
+        <completion string="Ada.Strings.UTF_Encoding.Wide_Strings"/>
+        <completion string="Ada.Strings.UTF_Encoding.Wide_Wide_Strings"/>
+        <completion string="Ada.Strings.Unbounded"/>
+        <completion string="Ada.Strings.Wide_Bounded"/>
+        <completion string="Ada.Strings.Wide_Equal_Case_Insensitive"/>
+        <completion string="Ada.Strings.Wide_Fixed"/>
+        <completion string="Ada.Strings.Wide_Hash"/>
+        <completion string="Ada.Strings.Wide_Hash_Case_Insensitive"/>
+        <completion string="Ada.Strings.Wide_Maps"/>
+        <completion string="Ada.Strings.Wide_Maps.Wide_Constants"/>
+        <completion string="Ada.Strings.Wide_Unbounded"/>
+        <completion string="Ada.Strings.Wide_Wide_Bounded"/>
+        <completion string="Ada.Strings.Wide_Wide_Equal_Case_Insensitive"/>
+        <completion string="Ada.Strings.Wide_Wide_Fixed"/>
+        <completion string="Ada.Strings.Wide_Wide_Hash"/>
+        <completion string="Ada.Strings.Wide_Wide_Hash_Case_Insensitive"/>
+        <completion string="Ada.Strings.Wide_Wide_Maps"/>
+        <completion string="Ada.Strings.Wide_Wide_Maps.Wide_Wide_Constants"/>
+        <completion string="Ada.Strings.Wide_Wide_Unbounded"/>
+        <completion string="Ada.Synchronous_Barriers"/>
+        <completion string="Ada.Synchronous_Task_Control"/>
+        <completion string="Ada.Synchronous_Task_Control.EDF"/>
+        <completion string="Ada.Tags"/>
+        <completion string="Ada.Tags.Generic_Dispatching_Constructor"/>
+        <completion string="Ada.Task_Identification"/>
+        <completion string="Ada.Task_Termination"/>
+        <completion string="Ada.Text_IO"/>
+        <completion string="Ada.Text_IO.Decimal_IO"/>
+        <completion string="Ada.Text_IO.Editing"/>
+        <completion string="Ada.Text_IO.Editing.Decimal_Output"/>
+        <completion string="Ada.Text_IO.Enumeration_IO"/>
+        <completion string="Ada.Text_IO.Fixed_IO"/>
+        <completion string="Ada.Text_IO.Float_IO"/>
+        <completion string="Ada.Text_IO.Integer_IO"/>
+        <completion string="Ada.Text_IO.Modular_IO"/>
+        <completion string="Ada.Text_IO.Text_Streams"/>
+        <completion string="Ada.Text_IO.Unbounded_IO"/>
+        <completion string="Ada.Text_IO.Wide_File_Names"/>
+        <completion string="Ada.Text_IO.Wide_Wide_File_Names"/>
+        <completion string="Ada.Wide_Characters"/>
+        <completion string="Ada.Wide_Characters.Handling"/>
+        <completion string="Ada.Wide_Command_Line"/>
+        <completion string="Ada.Wide_Directories"/>
+        <completion string="Ada.Wide_Directories.Hierarchical_File_Names"/>
+        <completion string="Ada.Wide_Directories.Information"/>
+        <completion string="Ada.Wide_Environment_Variables"/>
+        <completion string="Ada.Wide_Text_IO"/>
+        <completion string="Ada.Wide_Text_IO.Editing"/>
+        <completion string="Ada.Wide_Text_IO.Text_Streams"/>
+        <completion string="Ada.Wide_Text_IO.Wide_Unbounded_IO"/>
+        <completion string="Ada.Wide_Wide_Characters"/>
+        <completion string="Ada.Wide_Wide_Characters.Handling"/>
+        <completion string="Ada.Wide_Wide_Command_Line"/>
+        <completion string="Ada.Wide_Wide_Directories"/>
+        <completion string="Ada.Wide_Wide_Directories.Hierarchical_File_Names"/>
+        <completion string="Ada.Wide_Wide_Directories.Information"/>
+        <completion string="Ada.Wide_Wide_Environment_Variables"/>
+        <completion string="Ada.Wide_Wide_Text_IO"/>
+        <completion string="Ada.Wide_Wide_Text_IO.Editing"/>
+        <completion string="Ada.Wide_Wide_Text_IO.Text_Streams"/>
+        <completion string="Ada.Wide_Wide_Text_IO.Wide_Wide_Unbounded_IO"/>
+        <completion string="Interfaces.C"/>
+        <completion string="Interfaces.C.Pointers"/>
+        <completion string="Interfaces.C.Strings"/>
+        <completion string="Interfaces.COBOL"/>
+        <completion string="Interfaces.COBOL.Decimal_Conversions"/>
+        <completion string="Interfaces.Fortran"/>
+        <completion string="Interfaces.Fortran.Double_Precision_Complex_Types"/>
+        <completion string="Interfaces.Fortran.Single_Precision_Complex_Types"/>
+        <completion string="Standard.ASCII"/>
+        <completion string="System.Address_To_Access_Conversions"/>
+        <completion string="System.Atomic_Operations"/>
+        <completion string="System.Atomic_Operations.Exchange"/>
+        <completion string="System.Atomic_Operations.Integer_Arithmetic"/>
+        <completion string="System.Atomic_Operations.Modular_Arithmetic"/>
+        <completion string="System.Atomic_Operations.Test_And_Set"/>
+        <completion string="System.Machine_Code"/>
+        <completion string="System.Multiprocessors"/>
+        <completion string="System.Multiprocessors.Dispatching_Domains"/>
+        <completion string="System.RPC"/>
+        <completion string="System.Storage_Elements"/>
+        <completion string="System.Storage_Pools"/>
+        <completion string="System.Storage_Pools.Subpools"/>
+    </set>
+
+    <!-- All generic packages in Ada 202x. -->
+    <set name="ada.packages.generic.core" symbol="package">
+        <completion string="Ada.Containers.Bounded_Doubly_Linked_Lists">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Element_Type =&gt; $[type], &quot;=&quot; =&gt; $[function])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Containers.Bounded_Hashed_Maps">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Key_Type =&gt; $[type], Element_Type =&gt; $[type], Hash =&gt; $[function], Equivalent_Keys =&gt; $[function], &quot;=&quot; =&gt; $[function])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Containers.Bounded_Hashed_Sets">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Element_Type =&gt; $[type], Hash =&gt; $[function], Equivalent_Elements =&gt; $[function], &quot;=&quot; =&gt; $[function])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Containers.Bounded_Multiway_Trees">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Element_Type =&gt; $[type], &quot;=&quot; =&gt; $[function])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Containers.Bounded_Ordered_Maps">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Key_Type =&gt; $[type], Element_Type =&gt; $[type], &quot;&lt;&quot; =&gt; $[function], &quot;=&quot; =&gt; $[function])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Containers.Bounded_Ordered_Sets">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Element_Type =&gt; $[type], &quot;&lt;&quot; =&gt; $[function], &quot;=&quot; =&gt; $[function])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Containers.Bounded_Priority_Queues">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Queue_Interfaces =&gt; $[package], Queue_Priority =&gt; $[type], Get_Priority =&gt; $[function], Before =&gt; $[function])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Containers.Bounded_Synchronized_Queues">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Queue_Interfaces =&gt; $[package])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Containers.Bounded_Vectors">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Index_Type =&gt; $[type], Element_Type =&gt; $[type], &quot;=&quot; =&gt; $[function])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Containers.Doubly_Linked_Lists">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Element_Type =&gt; $[type], &quot;=&quot; =&gt; $[function])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Containers.Hashed_Maps">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Key_Type =&gt; $[type], Element_Type =&gt; $[type], Hash =&gt; $[function], Equivalent_Keys =&gt; $[function], &quot;=&quot; =&gt; $[function])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Containers.Hashed_Sets">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Element_Type =&gt; $[type], Hash =&gt; $[function], Equivalent_Elements =&gt; $[function], &quot;=&quot; =&gt; $[function])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Containers.Indefinite_Doubly_Linked_Lists">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Element_Type =&gt; $[type], &quot;=&quot; =&gt; $[function])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Containers.Indefinite_Hashed_Maps">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Key_Type =&gt; $[type], Element_Type =&gt; $[type], Hash =&gt; $[function], Equivalent_Keys =&gt; $[function], &quot;=&quot; =&gt; $[function])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Containers.Indefinite_Hashed_Sets">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Element_Type =&gt; $[type], Hash =&gt; $[function], Equivalent_Elements =&gt; $[function], &quot;=&quot; =&gt; $[function])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Containers.Indefinite_Holders">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Element_Type =&gt; $[type], &quot;=&quot; =&gt; $[function])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Containers.Indefinite_Multiway_Trees">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Element_Type =&gt; $[type], &quot;=&quot; =&gt; $[function])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Containers.Indefinite_Ordered_Maps">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Key_Type =&gt; $[type], Element_Type =&gt; $[type], &quot;&lt;&quot; =&gt; $[function], &quot;=&quot; =&gt; $[function])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Containers.Indefinite_Ordered_Sets">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Element_Type =&gt; $[type], &quot;&lt;&quot; =&gt; $[function], &quot;=&quot; =&gt; $[function])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Containers.Indefinite_Vectors">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Index_Type =&gt; $[type], Element_Type =&gt; $[type], &quot;=&quot; =&gt; $[function])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Containers.Multiway_Trees">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Element_Type =&gt; $[type], &quot;=&quot; =&gt; $[function])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Containers.Ordered_Maps">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Key_Type =&gt; $[type], Element_Type =&gt; $[type], &quot;&lt;&quot; =&gt; $[function], &quot;=&quot; =&gt; $[function])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Containers.Ordered_Sets">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Element_Type =&gt; $[type], &quot;&lt;&quot; =&gt; $[function], &quot;=&quot; =&gt; $[function])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Containers.Synchronized_Queue_Interfaces">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Element_Type =&gt; $[type])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Containers.Unbounded_Priority_Queues">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Queue_Interfaces =&gt; $[package], Queue_Priority =&gt; $[type], Get_Priority =&gt; $[function], Before =&gt; $[function])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Containers.Unbounded_Synchronized_Queues">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Queue_Interfaces =&gt; $[package])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Containers.Vectors">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Index_Type =&gt; $[type], Element_Type =&gt; $[type], &quot;=&quot; =&gt; $[function])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Direct_IO">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Element_Type =&gt; $[type])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Iterator_Interfaces">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Cursor =&gt; $[type], Has_Element =&gt; $[function])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Numerics.Elementary_Functions">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Result_Subtype =&gt; $[type], Generator =&gt; $[type], State =&gt; $[type], Generator =&gt; $[type], State =&gt; $[type])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Numerics.Generic_Complex_Arrays">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Real_Arrays =&gt; $[package], Complex_Types =&gt; $[package])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Numerics.Generic_Complex_Elementary_Functions">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Complex_Types =&gt; $[package])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Numerics.Generic_Complex_Types">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Real =&gt; $[type])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Numerics.Generic_Real_Arrays">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Real =&gt; $[type])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Sequential_IO">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Element_Type =&gt; $[type])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Storage_IO">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Element_Type =&gt; $[type])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Task_Attributes">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Attribute =&gt; $[type])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Text_IO.Bounded_IO">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Bounded =&gt; $[package])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Text_IO.Complex_IO">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Complex_Types =&gt; $[package])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Wide_Text_IO.Complex_IO">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Complex_Types =&gt; $[package])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Wide_Text_IO.Wide_Bounded_IO">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Wide_Bounded =&gt; $[package])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Wide_Wide_Text_IO.Complex_IO">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Complex_Types =&gt; $[package])</append>
+            </behavior>
+        </completion>
+        <completion string="Ada.Wide_Wide_Text_IO.Wide_Wide_Bounded_IO">
+            <behavior prefix="(?&lt;=new )">
+                <append>(Wide_Wide_Bounded =&gt; $[package])</append>
+            </behavior>
+        </completion>
     </set>
 </completions>

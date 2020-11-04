@@ -1,0 +1,9 @@
+{
+  "actions" : {
+    "build" : {
+      "enabled" : true,
+      "script" : "~\/devel\/NovaExt-Validator\/validate.sh -j ."
+    }
+  },
+  "identifier" : "310F840B-F2CC-4960-9039-4CB242C0A395"
+}
