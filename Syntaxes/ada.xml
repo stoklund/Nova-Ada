@@ -12,10 +12,10 @@
 
     <indentation>
         <increase>
-            <expression>\b(is|then|loop|else|begin|record|do|declare)$| =&gt;$</expression>
+            <expression>(?i)\b(is|then|loop|else|begin|record|do|declare)$| =&gt;$</expression>
         </increase>
         <decrease>
-            <expression>^\s*(end |begin$|when )</expression>
+            <expression>(?i)^\s*(end |begin$|when )</expression>
         </decrease>
     </indentation>
 
@@ -168,12 +168,12 @@
                     </context>
                 </symbol>
                 <starts-with>
-                    <expression>(?:^\s*)([a-zA-Z]\w*)\s*(:)(?=\s*(for|while|loop)\b)</expression>
+                    <expression>(?i)(?:^\s*)([a-zA-Z]\w*)\s*(:)(?=\s*(for|while|loop)\b)</expression>
                     <capture number="1" name="ada.identifier.key.name"/>
                     <capture number="2" name="ada.operator"/>
                 </starts-with>
                 <ends-with>
-                    <expression>\b(loop)\s*$</expression>
+                    <expression>(?i)\b(loop)\s*$</expression>
                     <capture number="1" name="ada.keyword"/>
                 </ends-with>
                 <subscopes>
@@ -185,7 +185,7 @@
                 <symbol type="statement">
                     <context behavior="end" group-by-name="true"/>
                 </symbol>
-                <expression>\b(end)\s+(loop)\s+(\w+)(;)</expression>
+                <expression>(?i)\b(end)\s+(loop)\s+(\w+)(;)</expression>
                 <capture number="1" name="ada.keyword"/>
                 <capture number="2" name="ada.keyword"/>
                 <capture number="3" name="ada.identifier.key.name"/>
@@ -200,11 +200,11 @@
                     </context>
                 </symbol>
                 <starts-with>
-                    <expression>(?:^\s*)(for|while|(?=loop\s*$))\b</expression>
+                    <expression>(?i)(?:^\s*)(for|while|(?=loop\s*$))\b</expression>
                     <capture number="1" name="ada.keyword"/>
                 </starts-with>
                 <ends-with>
-                    <expression>\b(loop)\s*$</expression>
+                    <expression>(?i)\b(loop)\s*$</expression>
                     <capture number="1" name="ada.keyword"/>
                 </ends-with>
                 <subscopes>
@@ -216,7 +216,7 @@
                 <symbol type="statement">
                     <context behavior="end" group="loop"/>
                 </symbol>
-                <expression>\b(end)\s+(loop)(;)</expression>
+                <expression>(?i)\b(end)\s+(loop)(;)</expression>
                 <capture number="1" name="ada.keyword"/>
                 <capture number="2" name="ada.keyword"/>
                 <capture number="3" name="ada.operator"/>
@@ -231,11 +231,11 @@
                     </context>
                 </symbol>
                 <starts-with>
-                    <expression>(?:^\s*)(return)\b</expression>
+                    <expression>(?i)(?:^\s*)(return)\b</expression>
                     <capture number="1" name="ada.keyword"/>
                 </starts-with>
                 <ends-with>
-                    <expression>\b(do)\s*$|(;)</expression>
+                    <expression>(?i)\b(do)\s*$|(;)</expression>
                     <capture number="1" name="ada.keyword"/>
                     <capture number="2" name="ada.operator"/>
                 </ends-with>
@@ -248,7 +248,7 @@
                 <symbol type="statement">
                     <context behavior="end" group="return"/>
                 </symbol>
-                <expression>\b(end)\s+(return)(;)</expression>
+                <expression>(?i)\b(end)\s+(return)(;)</expression>
                 <capture number="1" name="ada.keyword"/>
                 <capture number="2" name="ada.keyword"/>
                 <capture number="3" name="ada.operator"/>
@@ -262,11 +262,11 @@
                     </context>
                 </symbol>
                 <starts-with>
-                    <expression>\b(record)\b</expression>
+                    <expression>(?i)\b(record)\b</expression>
                     <capture number="1" name="ada.keyword.name"/>
                 </starts-with>
                 <ends-with>
-                    <expression>\b(end)\s+(record)(;)</expression>
+                    <expression>(?i)\b(end)\s+(record)(;)</expression>
                     <capture number="1" name="ada.keyword"/>
                     <capture number="2" name="ada.keyword.name"/>
                     <capture number="3" name="ada.operator"/>
@@ -288,12 +288,12 @@
                     </context>
                 </symbol>
                 <starts-with>
-                    <expression>(?:^\s*)([a-zA-Z]\w*)\s*(:)(?=\s*(declare|begin)\b)</expression>
+                    <expression>(?i)(?:^\s*)([a-zA-Z]\w*)\s*(:)(?=\s*(declare|begin)\b)</expression>
                     <capture number="1" name="ada.identifier.key.name"/>
                     <capture number="2" name="ada.operator"/>
                 </starts-with>
                 <ends-with>
-                    <expression>\b(declare|begin)\s*$</expression>
+                    <expression>(?i)\b(declare|begin)\s*$</expression>
                     <capture number="1" name="ada.keyword"/>
                 </ends-with>
             </scope>
@@ -313,7 +313,7 @@
                     <context behavior="end" group-by-name="true"/>
                 </symbol>
                 <!-- The complicated name here covers stuff like `end Foo.Bar."<";` -->
-                <expression>\b(end)\s+((\w+\.)*(\w+|"[^"\s]+"))(;)</expression>
+                <expression>(?i)\b(end)\s+((\w+\.)*(\w+|"[^"\s]+"))(;)</expression>
                 <capture number="1" name="ada.keyword"/>
                 <capture number="2" name="ada.identifier.name"/>
                 <capture number="5" name="ada.operator"/>
@@ -324,7 +324,7 @@
         <collection name="declarations">
             <!-- Forward declaration of a type -->
             <scope name="ada.identifier.type.forward">
-                <expression>(?:^\s*)(type|subtype)\s+(\w+)\s*(;)</expression>
+                <expression>(?i)(?:^\s*)(type|subtype)\s+(\w+)\s*(;)</expression>
                 <capture number="1" name="ada.keyword"/>
                 <capture number="2" name="ada.identifier.type.name"/>
                 <capture number="3" name="ada.operator"/>
@@ -336,12 +336,12 @@
                     <context behavior="subtree" arguments="true"/>
                 </symbol>
                 <starts-with>
-                    <expression>(?:^\s*)(type|subtype)\s+(\w+)</expression>
+                    <expression>(?i)(?:^\s*)(type|subtype)\s+(\w+)</expression>
                     <capture number="1" name="ada.keyword"/>
                     <capture number="2" name="ada.identifier.type.name"/>
                 </starts-with>
                 <ends-with>
-                    <expression>\b(is)\b</expression>
+                    <expression>(?i)\b(is)\b</expression>
                     <capture number="1" name="ada.keyword"/>
                 </ends-with>
                 <subscopes>
@@ -353,18 +353,18 @@
             <scope name="ada.definition.function">
                 <symbol type="function">
                     <!-- Do not start symbol for declarations or expression functions. -->
-                    <filter match-end="(?&lt;=is)(?!\s*\()"/>
+                    <filter match-end="(?i)(?&lt;=is)(?!\s*\()"/>
                     <context behavior="start" group-by-name="true">
                         <auto-close string="end " completion="$name;"/>
                     </context>
                 </symbol>
                 <starts-with>
-                    <expression>\b(function|procedure)\s+((\w+\.)*(\w+|"[^"\s]+"))</expression>
+                    <expression>(?i)\b(function|procedure)\s+((\w+\.)*(\w+|"[^"\s]+"))</expression>
                     <capture number="1" name="ada.keyword.function"/>
                     <capture number="2" name="ada.identifier.function.name"/>
                 </starts-with>
                 <ends-with>
-                    <expression>\b(is)\b|(;)</expression>
+                    <expression>(?i)\b(is)\b|(;)</expression>
                     <capture number="1" name="ada.keyword"/>
                     <capture number="2" name="ada.operator"/>
                 </ends-with>
@@ -377,7 +377,7 @@
             <scope name="ada.definition.package.generic-instance">
                 <symbol type="package"/>
                 <starts-with>
-                    <expression>(?:^\s*)(package)\s+(\w+)\s+(is)\s+(new)\b</expression>
+                    <expression>(?i)(?:^\s*)(package)\s+(\w+)\s+(is)\s+(new)\b</expression>
                     <capture number="1" name="ada.keyword.package"/>
                     <capture number="2" name="ada.identifier.package.name"/>
                     <capture number="3" name="ada.keyword.is"/>
@@ -398,7 +398,7 @@
                         <auto-close string="end " completion="$name;"/>
                     </context>
                 </symbol>
-                <expression>(?:^\s*)(package)(\s+body)?\s+((\w+\.)*\w+)\s+(is)\b</expression>
+                <expression>(?i)(?:^\s*)(package)(\s+body)?\s+((\w+\.)*\w+)\s+(is)\b</expression>
                 <capture number="1" name="ada.keyword"/>
                 <capture number="2" name="ada.keyword"/>
                 <capture number="3" name="ada.identifier.package.name"/>
