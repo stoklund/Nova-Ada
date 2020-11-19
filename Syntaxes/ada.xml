@@ -12,7 +12,7 @@
 
     <indentation>
         <increase>
-            <expression>\b(is|then|loop|else|begin|record|do)$| =&gt;$|</expression>
+            <expression>\b(is|then|loop|else|begin|record|do|declare)$| =&gt;$</expression>
         </increase>
         <decrease>
             <expression>^\s*(end |begin$|when )</expression>
