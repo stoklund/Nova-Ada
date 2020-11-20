@@ -15,7 +15,7 @@
             <expression>(?i)\b(is|then|loop|else|begin|record|do|declare)$| =&gt;$</expression>
         </increase>
         <decrease>
-            <expression>(?i)^\s*(end |begin$|when )</expression>
+            <expression>(?i)^\s*(end\b|begin$|when )</expression>
         </decrease>
     </indentation>
 
@@ -317,6 +317,30 @@
                 <capture number="1" name="ada.keyword"/>
                 <capture number="2" name="ada.identifier.name"/>
                 <capture number="5" name="ada.operator"/>
+            </scope>
+
+            <!-- Un-labeled block statement:
+
+                 declare ... begin ... end;
+
+              Technically, the `declare` is optional, but an unlabeled `begin ... end` block serves no purpose, so we won't try to support it.
+              -->
+            <scope name="ada.statement.declare-block">
+                <symbol type="block">
+                    <context behavior="start" group="declare"/>
+                </symbol>
+                <expression>(?i)(?:^\s*)(declare)\s*$</expression>
+                <capture number="1" name="ada.keyword"/>
+            </scope>
+
+            <!-- End a declare block. -->
+            <scope name="ada.statement.end-declare">
+                <symbol type="block">
+                    <context behavior="end" group="declare"/>
+                </symbol>
+                <expression>(?i)\b(end)(;)</expression>
+                <capture number="1" name="ada.keyword"/>
+                <capture number="2" name="ada.operator"/>
             </scope>
         </collection>
 
